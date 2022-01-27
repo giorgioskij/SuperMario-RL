@@ -1,0 +1,13 @@
+name: mario
+channels:
+  - conda-forge
+  - pytorch
+dependencies:
+  - matplotlib
+  - pip
+  - pip:
+    - gym-super-mario-bros
+  - python
+  - pytorch
+  - torchvision
+  - cudatoolkit=11.3
