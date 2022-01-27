@@ -1,65 +1,100 @@
-from smb import Smb
+from smb import Smb, Memory
 from action import Action
 from pprint import pprint
 from agent import Agent, Mario
 from pathlib import Path
 from datetime import datetime
 from logger import MetricLogger
+import torch
+import sys
 from gym_super_mario_bros import actions
 
-import torch
+
+def test(initial_weights: str, n_episodes: int = 1):
+    smb = Smb(action_set=actions.SIMPLE_MOVEMENT, env='SuperMarioBros-v2')
+    mario = Mario(state_shape=(4,84,84), n_actions=smb.env.action_space.n, savestates_path=None)
+    mario.restore_weights(initial_weights)
+
+    for e in range(n_episodes):
+        state = smb.reset()
+
+        # play a level
+        while True:
+            # choose an action
+            action = mario.choose_action(state)
+            # execute the chosen action and gather the memory
+            memory: Memory = smb.step(action, render=True)
+            # log reward, q, loss
+            if smb.is_done():
+                break
+        
+    smb.close()
+    
 
 
 def main():
 
-    save_dir = Path('checkpoints') / datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
+    smb = Smb(action_set=actions.SIMPLE_MOVEMENT, env='SuperMarioBros-v2')
+    save_dir = Path('checkpoints_nobk') / datetime.now().strftime("%Y-%m-%dT%H-%M")
     save_dir.mkdir(parents=True)
-
-    logger = MetricLogger(save_dir)
-    smb = Smb(action_set=actions.RIGHT_ONLY, env='SuperMarioBros-v2')
     mario = Mario(state_shape=(4,84,84), n_actions=smb.env.action_space.n, savestates_path=save_dir)
+    logger = MetricLogger(save_dir)
 
-    episodes = 1000
+    # parameters
+    episodes = 100
+    log = False
+    initial_weights = None 
+    render_every = 20
+    log_every = 2
 
 
-    for e in range(episodes):
-        state = smb.reset()
+    if initial_weights:
+        mario.restore_weights(initial_weights)
 
-        while True:
+    try:
+        # Training loop
+        for e in range(episodes):
 
-            action = mario.choose_action(state)
+            # set up level
+            state = smb.reset()
+            if render_every and (e % render_every) == 0:
+                render = True
+                # smb.render()
+            else:
+                render = False
 
-            next_state, reward, done, info = smb.step(action)
+            # play a level
+            while True:
+                # choose an action
+                action = mario.choose_action(state)
+                # execute the chosen action and gather the memory
+                memory: Memory = smb.step(action, render=render)
+                # memorize the action
+                mario.memorize(memory)
 
-            mario.memorize(state, next_state, action, reward, done)
+                # execute an update step
+                q, loss = mario.learn(verbose=True)
+                # log reward, q, loss
+                logger.log_step(smb.last_reward, loss, q)
+                if smb.is_done():
+                    break
 
-            q, loss = mario.learn()
+            logger.log_episode()
+            if e % log_every == 0:
+                logger.record(episode=e, epsilon=mario.exploration_rate, step=mario.current_step)
 
-            logger.log_step(reward, loss, q)
-
-            state = next_state
-
-            if done or info['flag_get']:
-                break
-
-        logger.log_episode()
-
-        if e % 20 == 0:
-            logger.record(episode=e, epsilon=mario.exploration_rate, step=mario.current_step)
-
-    torch.save(mario.dqn.online.state_dict(), save_dir / 'online.pth')
-    torch.save(mario.dqn.target.state_dict(), save_dir / 'target.pth')
-    # for step in range(1):
-    #     if env.is_done(): 
-    #         env.reset()
-    #     env.step(Action.RIGHT_B)
-    #     print(env.state.shape)
-    #     print(type(env.state))
-
-    #     pprint(env.state[:, :, 0])
-    #     # env.render()
-    # env.close()
+    except KeyboardInterrupt: 
+        print('\nKeyboard interrupt detected: saving weights...')
+        mario.save()
+        
+    finally:
+        mario.save()
+        try:
+            smb.close()
+        except ValueError:
+            pass
 
 
 if __name__ == '__main__':
     main()
+    # test('checkpoints_nobk/2022-01-27T17-00/mario_net_0.chkpt')

@@ -1,5 +1,4 @@
 from collections import deque
-from tkinter import Variable
 from action import Action
 import torch
 import torch.nn as nn
@@ -10,10 +9,10 @@ import random
 import numpy as np
 from abc import ABC, abstractmethod
 import copy
-
+from smb import Memory
 
 DEVICE = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-
+print(f'Set pytorch device to {DEVICE}')
 
 class Agent(ABC):
 
@@ -31,20 +30,11 @@ class Agent(ABC):
 
 
     @abstractmethod
-    def memorize(self,
-        state: np.ndarray,
-        next_state: np.ndarray,
-        action: Action,
-        reward: int,
-        done: bool ):
+    def memorize(self, memory: Memory):
         """ Stores the memory of an action taken and its result 
 
         Args:
-            state (np.ndarray): the state before
-            next_state (np.ndarray): the state after
-            action (Action): the action taken
-            reward (int): the reward obtained
-            done (bool): whether the episode ended after
+            memory (Memory): the memory to store
         """
         pass
 
@@ -67,6 +57,7 @@ class Mario(Agent):
         self.n_actions: int          = n_actions
         self.savestates_path: str    = savestates_path
         self.save_every: int         = 500000
+        # self.save_every: int         = 10000
 
         # Policy related
         self.device: str                 = 'cuda:0' if torch.cuda.is_available() else 'cpu'
@@ -74,18 +65,19 @@ class Mario(Agent):
         self.dqn.to(self.device)
 
         self.optimizer                   = optim.Adam(self.dqn.parameters(), lr=0.00025)
-        self.loss_fn                     = nn.SmoothL1Loss()
+        # self.loss_fn                     = nn.SmoothL1Loss()
+        self.loss_fn                     = nn.HuberLoss()
         self.exploration_rate: int       = 1
         self.exploration_decay: float    = 0.99999975
         self.exploration_rate_min: float = 0.1
         self.current_step: int           = 0
-        self.burnin: int                 = 10000  # min. experiences before training
-        self.learn_every: int            = 3  # no. of experiences between updates to Q_online
+        self.burnin: int                 = 100  # min. experiences before training
+        self.learn_every: int            = 4    # no. of experiences between updates to Q_online
         self.sync_every: int             = 10000  # no. of experiences between Q_target & Q_online sync
 
         # Memory related
         self.batch_size = 32
-        self.memory     = deque(maxlen=10000)
+        self.memories   = deque(maxlen=20000)
         self.gamma      = 0.9
 
 
@@ -97,7 +89,6 @@ class Mario(Agent):
         else:
             state = state.__array__()
             state = torch.tensor(state).to(self.device).unsqueeze(0)
-            # state = torch.from_numpy(state.copy()).to(self.device).unsqueeze(0)
             action_values = self.dqn(state, model='online')
             action = Action(torch.argmax(action_values, axis=1).item())
         # decrease exploration rate
@@ -108,24 +99,25 @@ class Mario(Agent):
         return action
 
 
-    def memorize(self, state:np.ndarray, next_state:np.ndarray, action:Action, reward:int, done:bool):
-        state = state.__array__() # TODO: capire che cazzo fanno queste due righe 
-        next_state = next_state.__array__()
+    # stores a memory
+    def memorize(self, memory: Memory):
 
+        state = memory.state.__array__()
+        next_state = memory.next_state.__array__()
         state      = torch.tensor(state).to(self.device)
-        # state      = torch.from_numpy(state.copy()).to(self.device)
         next_state = torch.tensor(next_state).to(self.device)
-        # next_state = torch.from_numpy(next_state.copy()).to(self.device)
-        action     = torch.tensor([action]).to(self.device)
-        reward     = torch.tensor([reward]).to(self.device)
-        done       = torch.tensor([done]).to(self.device)
-        self.memory.append((state, next_state, action, reward, done,))
+        action     = torch.tensor([memory.action]).to(self.device)
+        reward     = torch.tensor([memory.reward]).to(self.device)
+        done       = torch.tensor([memory.done]).to(self.device)
+        self.memories.append((state, next_state, action, reward, done,))
+
 
 
     def recall(self) -> tuple[np.ndarray, np.ndarray, torch.Tensor, torch.Tensor, torch.Tensor]:
-        batch = random.sample(self.memory, self.batch_size)
+        batch = random.sample(self.memories, self.batch_size)
         state, next_state, action, reward, done = map(torch.stack, zip(*batch))
         return state, next_state, action.squeeze(), reward.squeeze(), done.squeeze()
+
 
 
     def td_estimate(self, state: torch.Tensor, action: Action):
@@ -165,13 +157,25 @@ class Mario(Agent):
             save_path,
         )
         print(f'MarioNet saved to {save_path} at step {self.current_step}')
+
+
+    def restore_weights(self, path):
+        data = torch.load(path)
+        self.dqn.load_state_dict(data['model'])
+        self.exploration_rate = data['exploration_rate']
+
     
 
-    def learn(self):
+    def learn(self, verbose: bool = False):
+
         if self.current_step % self.sync_every == 0:
+            if verbose:
+                print(f'Step {self.current_step}: copying online weights to target')
             self.sync_Q_target()
         
         if self.current_step % self.save_every == 0:
+            if verbose:
+                print(f'Step {self.current_step}: saving network')
             self.save()
 
         if self.current_step < self.burnin: 
@@ -219,11 +223,20 @@ class MarioNet(nn.Module):
         for p in self.target.parameters():
             p.requires_grad = False
         
+        self.init_weights()
+        
     def forward(self, x: torch.Tensor, model: str):
         if model == 'online':
             return self.online(x)
         elif model == 'target':
             return self.target(x)
+
+    def init_weights(self):
+        def _init_layer_weight(layer):
+            if type(layer) == nn.Linear:
+                nn.init.kaiming_uniform_(layer.weight)
+                layer.bias.data.fill_(0.01)
+        self.apply(_init_layer_weight)
 
 
 class AnotherAgent():

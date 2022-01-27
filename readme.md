@@ -21,3 +21,9 @@
 
 ## The double network architecture
 
+
+## Improvements
+
+- Frequency of weight update (4 steps?)
+- Frequency of copy (100 steps?)
+- Initialization technique

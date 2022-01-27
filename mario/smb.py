@@ -5,33 +5,75 @@ from nes_py.wrappers import JoypadSpace
 from action import Action
 import time
 import numpy as np
-
+from dataclasses import dataclass
 # gym
 import gym
 from gym.spaces import Box
-from gym.wrappers import FrameStack
-
-
-
+from gym.wrappers import FrameStack, LazyFrames
+#torch
 import torch
 import torchvision.transforms as T
 
 
+@dataclass
+class Memory:
+    """ A dataclass representing a single memory
+    """
+    state:      LazyFrames
+    next_state: LazyFrames
+    action:     Action
+    reward:     int
+    done:       bool
+
+
+
 class Environment(ABC):
+    """ 
+    Abstract class wrapping an environment
+    """
     @abstractmethod
-    def step(self, action: Action):
+    def step(self, action: Action, render: bool = False) -> Memory:
+        """ Perform an action and create a memory
+
+        Args:
+            action (Action): the action to perform
+            render (bool, optional) [False]. Whether to render the environment after
+
+        Returns:
+            Memory: a memory of the action performed
+        """
         pass
 
     @abstractmethod
-    def reset(self):
+    def reset(self) -> LazyFrames:
+        """ Reset the environment
+
+        Returns:
+            LazyFrames: the initial state
+        """
         pass
 
     @abstractmethod
     def render(self):
+        """ 
+        Render the environment
+        """
         pass
 
     @abstractmethod
     def close(self):
+        """ 
+        Close the environment
+        """
+        pass
+
+    @abstractmethod
+    def is_done(self) -> bool:
+        """ Return whether the episode is finished
+
+        Returns:
+            bool: true if the episode is over
+        """
         pass
 
 
@@ -44,9 +86,10 @@ class Smb(Environment):
         smb_env = gym_smb.make(env)
         self.env: JoypadSpace = JoypadSpace(smb_env, action_set)
         self.done: bool = True
-        self.state: np.ndarray
+        self.state: LazyFrames
         self.last_reward: int
         self.last_info: dict
+        self.last_memory: Memory
 
         # Apply Wrappers to environment
         self.env = SkipFrame(self.env, skip=4)
@@ -54,15 +97,19 @@ class Smb(Environment):
         self.env = ResizeObservation(self.env, shape=84)
         self.env = FrameStack(self.env, num_stack=4)
 
-    def step(self, action: Action):
+    def step(self, action: Action, render: bool = False) -> Memory:
         next_state, reward, done, info = self.env.step(action)
+        self.last_memory = Memory(self.state, next_state, action, reward, done)
         self.state = next_state
         self.last_reward = reward
-        self.done = done
         self.last_info = info
-        return next_state, reward, done, info
+        self.done = done
 
-    def reset(self) -> np.ndarray:
+        if render:
+            self.render()
+        return self.last_memory
+
+    def reset(self) -> gym.wrappers.LazyFrames:
         self.state = self.env.reset()
         self.done = False
         return self.state
@@ -75,7 +122,7 @@ class Smb(Environment):
         self.env.close()
 
     def is_done(self) -> bool:
-        return self.done
+        return self.done or self.last_info['flag_get']
 
 
 

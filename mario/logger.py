@@ -1,7 +1,6 @@
 import numpy as np
 import time, datetime
-import matplotlib.pyplot as plt
-
+# import matplotlib.pyplot as plt
 
 class MetricLogger:
     def __init__(self, save_dir):
@@ -99,7 +98,7 @@ class MetricLogger:
                 f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'):>20}\n"
             )
 
-        for metric in ["ep_rewards", "ep_lengths", "ep_avg_losses", "ep_avg_qs"]:
-            plt.plot(getattr(self, f"moving_avg_{metric}"))
-            plt.savefig(getattr(self, f"{metric}_plot"))
-            plt.clf()
+        # for metric in ["ep_rewards", "ep_lengths", "ep_avg_losses", "ep_avg_qs"]:
+        #     plt.plot(getattr(self, f"moving_avg_{metric}"))
+        #     plt.savefig(getattr(self, f"{metric}_plot"))
+        #     plt.clf()
