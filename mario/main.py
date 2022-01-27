@@ -41,11 +41,11 @@ def main():
     logger = MetricLogger(save_dir)
 
     # parameters
-    episodes = 100
+    episodes = 10000
     log = False
     initial_weights = None 
-    render_every = 20
-    log_every = 2
+    render_every = None # set to none to disable rendering during training 
+    log_every = 20 
 
 
     if initial_weights:
@@ -73,7 +73,7 @@ def main():
                 mario.memorize(memory)
 
                 # execute an update step
-                q, loss = mario.learn(verbose=True)
+                q, loss = mario.learn(verbose=False)
                 # log reward, q, loss
                 logger.log_step(smb.last_reward, loss, q)
                 if smb.is_done():
@@ -85,7 +85,6 @@ def main():
 
     except KeyboardInterrupt: 
         print('\nKeyboard interrupt detected: saving weights...')
-        mario.save()
         
     finally:
         mario.save()
@@ -97,4 +96,14 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # test('checkpoints_nobk/2022-01-27T17-00/mario_net_0.chkpt')
+    # test('checkpoints_nobk/2022-01-27T18-24/mario_net_0.chkpt')
+
+
+'''
+- To run with visuals or to test, we need to disable matplotlib logging. 
+This is done by commenting the last lines in logger.py
+
+- To run with matplotlib, we need to disable visuals.
+This is done by setting render_every to None in main.py.
+
+'''
