@@ -41,7 +41,7 @@ def main():
 
     # parameters
     action_set = actions.RIGHT_ONLY
-    episodes = 10000
+    episodes = 40000
     log = False
     initial_weights = None 
     render_every = None # set to none to disable rendering during training 
