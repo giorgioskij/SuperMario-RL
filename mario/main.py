@@ -44,10 +44,10 @@ def main():
     episodes = 10000
     log = False
     initial_weights = None 
-    render_every = 1 # set to none to disable rendering during training 
-    log_every = 20 
+    render_every = None # set to none to disable rendering during training 
+    log_every = 100
 
-    smb = Smb(action_set=action_set, env='SuperMarioBros-v2')
+    smb = Smb(action_set=action_set, env='SuperMarioBros-v0')
     save_dir = Path('checkpoints_nobk') / datetime.now().strftime("%Y-%m-%dT%H-%M")
     save_dir.mkdir(parents=True)
     mario = Mario(state_shape=(84,84,4), n_actions=smb.env.action_space.n, savestates_path=save_dir)
