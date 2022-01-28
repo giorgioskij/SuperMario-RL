@@ -4,10 +4,11 @@ channels:
   - conda-forge
 dependencies:
   - matplotlib
+  - opencv
   - pip
   - pip:
     - gym-super-mario-bros
-  - python=3.9.7
+  - python=3.8
   - pytorch
   - torchvision
   - cudatoolkit=11.3

@@ -11,8 +11,13 @@ from gym_super_mario_bros import actions
 
 
 def test(initial_weights: str, n_episodes: int = 1):
-    smb = Smb(action_set=actions.SIMPLE_MOVEMENT, env='SuperMarioBros-v2')
-    mario = Mario(state_shape=(4,84,84), n_actions=smb.env.action_space.n, savestates_path=None)
+    action_set = [
+        ['right'],
+        ['right', 'A']
+    ]
+    action_set = actions.SIMPLE_MOVEMENT
+    smb = Smb(action_set=action_set, env='SuperMarioBros-v0')
+    mario = Mario(state_shape=(84,84,4), n_actions=smb.env.action_space.n, savestates_path=None)
     mario.restore_weights(initial_weights)
 
     for e in range(n_episodes):
@@ -21,7 +26,7 @@ def test(initial_weights: str, n_episodes: int = 1):
         # play a level
         while True:
             # choose an action
-            action = mario.choose_action(state)
+            action = mario.choose_action(smb.state)
             # execute the chosen action and gather the memory
             memory: Memory = smb.step(action, render=True)
             # log reward, q, loss
@@ -34,18 +39,19 @@ def test(initial_weights: str, n_episodes: int = 1):
 
 def main():
 
-    smb = Smb(action_set=actions.SIMPLE_MOVEMENT, env='SuperMarioBros-v2')
-    save_dir = Path('checkpoints_nobk') / datetime.now().strftime("%Y-%m-%dT%H-%M")
-    save_dir.mkdir(parents=True)
-    mario = Mario(state_shape=(4,84,84), n_actions=smb.env.action_space.n, savestates_path=save_dir)
-    logger = MetricLogger(save_dir)
-
     # parameters
+    action_set = actions.RIGHT_ONLY
     episodes = 10000
     log = False
     initial_weights = None 
-    render_every = None # set to none to disable rendering during training 
+    render_every = 1 # set to none to disable rendering during training 
     log_every = 20 
+
+    smb = Smb(action_set=action_set, env='SuperMarioBros-v2')
+    save_dir = Path('checkpoints_nobk') / datetime.now().strftime("%Y-%m-%dT%H-%M")
+    save_dir.mkdir(parents=True)
+    mario = Mario(state_shape=(84,84,4), n_actions=smb.env.action_space.n, savestates_path=save_dir)
+    logger = MetricLogger(save_dir)
 
 
     if initial_weights:
@@ -66,7 +72,7 @@ def main():
             # play a level
             while True:
                 # choose an action
-                action = mario.choose_action(state)
+                action = mario.choose_action(smb.state)
                 # execute the chosen action and gather the memory
                 memory: Memory = smb.step(action, render=render)
                 # memorize the action
@@ -96,7 +102,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # test('checkpoints_nobk/2022-01-27T18-24/mario_net_0.chkpt')
+    # test('checkpoints_nobk/2022-01-27T18-34/mario_net_19.chkpt')
 
 
 '''

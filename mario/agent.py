@@ -39,7 +39,7 @@ class Agent(ABC):
         pass
 
     @abstractmethod
-    def recall(self) -> tuple[np.ndarray, np.ndarray, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def recall(self):
         """ Recalls a random memory from its storage 
 
         Returns:
@@ -50,10 +50,10 @@ class Agent(ABC):
 
 class Mario(Agent):
 
-    def __init__(self, state_shape: tuple[int], n_actions: int, savestates_path: str):
+    def __init__(self, state_shape: tuple, n_actions: int, savestates_path: str):
         
         # Game related
-        self.state_shape: tuple[int] = state_shape
+        self.state_shape: tuple = state_shape
         self.n_actions: int          = n_actions
         self.savestates_path: str    = savestates_path
         self.save_every: int         = 500000
@@ -113,7 +113,7 @@ class Mario(Agent):
 
 
 
-    def recall(self) -> tuple[np.ndarray, np.ndarray, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def recall(self):
         batch = random.sample(self.memories, self.batch_size)
         state, next_state, action, reward, done = map(torch.stack, zip(*batch))
         return state, next_state, action.squeeze(), reward.squeeze(), done.squeeze()
@@ -198,9 +198,9 @@ class Mario(Agent):
 
 
 class MarioNet(nn.Module):
-    def __init__(self, input_shape: tuple[int], n_actions: int):
+    def __init__(self, input_shape: tuple, n_actions: int):
         super().__init__()
-        c, h, w = input_shape
+        h, w, c = input_shape
 
         if h != 84:
             raise ValueError(f"Expecting input height: 84, got: {h}")
@@ -226,6 +226,8 @@ class MarioNet(nn.Module):
         self.init_weights()
         
     def forward(self, x: torch.Tensor, model: str):
+        x = x.permute(0,3,1,2)
+        x = x.float()/255.
         if model == 'online':
             return self.online(x)
         elif model == 'target':
