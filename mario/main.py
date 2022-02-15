@@ -6,17 +6,18 @@ from pathlib import Path
 from datetime import datetime
 from logger import MetricLogger
 import torch
+import os 
 import sys
 from gym_super_mario_bros import actions
 
 
-def test(initial_weights: str, n_episodes: int = 1):
+def test(initial_weights: str, n_episodes: int = 1, record: bool = False):
     action_set = [
         ['right'],
         ['right', 'A']
     ]
-    action_set = actions.SIMPLE_MOVEMENT
-    smb = Smb(action_set=action_set, env='SuperMarioBros-v0')
+    action_set = actions.RIGHT_ONLY
+    smb = Smb(action_set=action_set, env='SuperMarioBros-v0', record = record)
     mario = Mario(state_shape=(84,84,4), n_actions=smb.env.action_space.n, savestates_path=None)
     mario.restore_weights(initial_weights)
 
@@ -32,6 +33,17 @@ def test(initial_weights: str, n_episodes: int = 1):
             # log reward, q, loss
             if smb.is_done():
                 break
+
+        # print(smb.last_info)
+        if smb.last_info['flag_get']:
+
+            print('Level complete')
+            print(f'episode : {e}')
+        # else:
+        #     os.remove(f'video/rl-video-episode-{e}.meta.json')
+        #     os.remove(f'video/rl-video-episode-{e}.mp4')
+            
+
         
     smb.close()
     
@@ -101,8 +113,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
-    # test('checkpoints_nobk/2022-01-27T18-34/mario_net_19.chkpt')
+    # main() 
+    test('checkpoints_nobk/2022-01-28T15-12/mario_net_1.chkpt', record = True, n_episodes=1)
 
 
 '''

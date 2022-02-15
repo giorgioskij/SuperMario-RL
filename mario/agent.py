@@ -77,7 +77,7 @@ class Mario(Agent):
 
         # Memory related
         self.batch_size = 32
-        self.memories   = deque(maxlen=20000)
+        self.memories   = deque(maxlen=50000)
         self.gamma      = 0.9
 
 

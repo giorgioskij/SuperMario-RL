@@ -8,13 +8,15 @@ import numpy as np
 from dataclasses import dataclass
 # gym
 import gym
+from gym.wrappers import Monitor
 from gym.spaces import Box
-from gym.wrappers import FrameStack, LazyFrames
+from gym.wrappers import FrameStack, LazyFrames, RecordVideo
 #torch
 import torch
 import torchvision.transforms as T
 
 from wrappers import wrapper
+
 
 
 @dataclass
@@ -83,7 +85,8 @@ class Smb(Environment):
     def __init__(
         self,
         action_set = actions.RIGHT_ONLY,
-        env: str = 'SuperMarioBros-v0'
+        env: str = 'SuperMarioBros-v0',
+        record: bool = False,
     ):
         smb_env = gym_smb.make(env)
         self.env: JoypadSpace = JoypadSpace(smb_env, action_set)
@@ -99,6 +102,8 @@ class Smb(Environment):
         # self.env = ResizeObservation(self.env, shape=84)
         # self.env = FrameStack(self.env, num_stack=4)
         self.env = wrapper(self.env)
+        if record:
+            self.env = RecordVideo(self.env, 'video' )
 
     def step(self, action: Action, render: bool = False) -> Memory:
         next_state, reward, done, info = self.env.step(action)

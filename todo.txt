@@ -1,0 +1,7 @@
+programming:
+- refactor main file
+- implement basic q learning algorithm
+- test DDQN on other environment
+
+report:
+- technologies and hardware

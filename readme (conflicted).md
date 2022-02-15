@@ -26,9 +26,9 @@ Playing Super Mario Bros with the Double Deep Q Learning algorithm
 # Introduction, aims and goals
 
 
-For this machine learning project, I decided to give my best shot at the implementation of an algorithm that has fascinated me for a long time, and that I consider to be one of the most elegant and intriguing algorithms in the field of reinforcement learning: the Double Deep Q algorithm.
+For this machine learning project, I decided to give my best shot at the implementation of an algorithm that fascinated me for a long time, and that I consider to be one of the most elegant and intriguing algorithms in the field of reinforcement learning: the Double Deep Q algorithm.
 
-I first discovered this algorithm many years ago, but I tried to understand it way before I had any of the sufficient knowledge to do so. Years later I discovered *Gym*, by *OpenAI*, which is an amazing framework for developing and testing RL algorithms.
+I first discovered this algorithm many years ago, but I tried to understand way before I had any of the sufficient knowledge to do so. Years later I discovered *Gym*, by *OpenAI*, which is an amazing framework for developing and testing RL algorithms.
 
 In the words of the authors,
 > Gym is a toolkit for developing and comparing reinforcement learning algorithms.
@@ -43,17 +43,6 @@ I intend to understand and implement the algorithm, and test my implementation o
 <br>
 
 # Technologies and hardware
-
-The code for this project will be written in python 3.8, using the [PyTorch](https://pytorch.org/) framework, which supports GPU acceleration with CUDA.
-
-The game environment will be handled by [OpenAI Gym](https://gym.openai.com/), which offers environments that take care of modelling the state, the actions, the visual rendering of the game, and the rewards given. The model will be trained and tested on my local machine, which uses an Intel Core i9 10900k processor and an NVIDIA RTX3070 gpu.
-
-![](images/neofetch.png)
-
-All the dependencies are listed in the `environment.yml` file, and the conda environment can be created with: 
-```
-conda env create -f environment.yml
-```
 
 - Python
 - Pytorch
@@ -206,50 +195,13 @@ Here, $\text{ }argmax_{a'} \text{ } Q(s',a';\theta)\text{ }$ selects the best ne
 
 ## Summary of the final algorithm
 
-Before exposing the pseudocode for the double-DQN algorithm, we have to remember that until now we have considered $Q$ as a function that given a state and an action, returns a q value. When using neural networks, we interpret $Q$ as a function that given a state, returns an <action, value> pair for each possible action. 
-
 <br>
 
-**`Algorithm: double-DQN`**
+`
+Algorithm: double-DQN
 
-    Initialise online network Q and target network Q' with same weights
-    Initialise empty memory buffer MEMORY
-    Initialise TRAIN_EVERY, SYNC_EVERY as integers
-    Initialise GAMMA as float
-
-    For each episode do:
-        For each STEP until episode is over do:
-
-            # Progress in the game
-            - obtain state S
-            - ACTION_Q_VALUES := Q(S)
-            - choose action A according to epsilon-greedy
-            - perform A to obtain reward R and next state S'
-            - store the tuple <S,A,R,S'> in MEMORY
-
-            # Learn
-            Once every TRAIN_EVERY steps do:
-                - S,A,R,S' := sample random tuple from MEMORY
-
-                # Compute the target
-                - BEST_NEXT_ACTION := argmax(Q(S'))     # use online to choose best action from S'
-                - NEXT_BEST_Q_VALUE := Q'(S')[BEST_NEXT_ACTION]   # use target to predict its Q value
-                - TARGET := (R + GAMMA * NEXT_BEST_Q)   # use learning equation to define target
-                
-                # Make the prediction
-                - PREDICTED_Q_VALUE := Q(S)[ACTION]
-
-                # Compute loss between prediction and target
-                - LOSS := (TARGET - PREDICTED_Q_VALUE)^2
-
-                # Normal training of deep NN
-                - calculate gradients and backpropagate
-                - update weigths normally
-
-            # Update target model weights
-            Once every SYNC_EVERY steps do:
-                - copy weights of Q to Q'
-
+Initialise online network `$Q_\theta` and target network `Q_{\theta '}` with same weights
+`   
 
 
 
@@ -304,4 +256,4 @@ Before exposing the pseudocode for the double-DQN algorithm, we have to remember
 
 [3] Volodymyr Mnih and Koray Kavukcuoglu and David Silver and Alex Graves and Ioannis Antonoglou and Daan Wierstra and Martin A. Riedmiller (2013). Playing Atari with Deep Reinforcement Learning 
 
-[3] van Hasselt, H., Guez, A., & Silver, D. (2016). Deep Reinforcement Learning w
+[3] van Hasselt, H., Guez, A., & Silver, D. (2016). Deep Reinforcement Learning with Double Q-Learning. Proceedings of the AAAI Conference on Artificial Intelligence, 30(1)
