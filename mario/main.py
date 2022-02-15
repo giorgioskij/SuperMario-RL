@@ -36,14 +36,8 @@ def test(initial_weights: str, n_episodes: int = 1, record: bool = False):
 
         # print(smb.last_info)
         if smb.last_info['flag_get']:
-
             print('Level complete')
             print(f'episode : {e}')
-        # else:
-        #     os.remove(f'video/rl-video-episode-{e}.meta.json')
-        #     os.remove(f'video/rl-video-episode-{e}.mp4')
-            
-
         
     smb.close()
     
@@ -114,14 +108,14 @@ def main():
 
 if __name__ == '__main__':
     # main() 
-    test('checkpoints_nobk/2022-01-28T15-12/mario_net_1.chkpt', record = True, n_episodes=1)
+    test('checkpoints_nobk/2022-01-28T15-12/mario_net_1.chkpt', record = True, n_episodes=20)
 
 
 '''
-- To run with visuals or to test, we need to disable matplotlib logging. 
-This is done by commenting the last lines in logger.py
+- To run with a visual rendering or to test, we need to disable matplotlib plotting. 
+This is done by commenting the last four lines in logger.py
 
-- To run with matplotlib, we need to disable visuals.
-This is done by setting render_every to None in main.py.
+- To run with matplotlib plotting, we need to disable visuals.
+This is done by setting render_every to None in the main() function.
 
 '''

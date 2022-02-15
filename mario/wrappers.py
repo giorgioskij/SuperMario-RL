@@ -1,6 +1,6 @@
 
 """basic wrappers, useful for reinforcement learning on gym envs"""
-# Mostly copy-pasted from https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
+# Partially taken from https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.py
 import numpy as np
 import os
 os.environ.setdefault('PATH', '')

@@ -10,5 +10,6 @@ dependencies:
     - gym-super-mario-bros
   - python=3.8
   - pytorch
+  - torchinfo
   - torchvision
   - cudatoolkit=11.3

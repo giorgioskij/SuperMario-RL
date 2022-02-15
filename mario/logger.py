@@ -1,3 +1,8 @@
+'''
+Handles most of the logging, and plots graphs during training
+
+Mostly taken from https://pytorch.org/tutorials/intermediate/mario_rl_tutorial.html
+'''
 import numpy as np
 import time, datetime
 import matplotlib.pyplot as plt
@@ -98,6 +103,9 @@ class MetricLogger:
                 f"{datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'):>20}\n"
             )
 
+
+        # To run while visually displaying the environment, comment the following four lines 
+        
         # for metric in ["ep_rewards", "ep_lengths", "ep_avg_losses", "ep_avg_qs"]:
         #     plt.plot(getattr(self, f"moving_avg_{metric}"))
         #     plt.savefig(getattr(self, f"{metric}_plot"))
