@@ -1011,21 +1011,21 @@ The reward is clipped into the range (-15, 15).
 <p>These plots show some interesting things. First of all, that the training process is very unstable and oscillates a lot, but still manages to converge decently fast. However, after a certain point it reaches a stop in convergence and does not improve any further.</p>
 <br>
 <h2 id="did-mario-manage-to-get-to-the-flag">Did Mario manage to get to the flag?</h2>
-<p><strong>Yes, it did!</strong></p>
+<p><strong>Yes, he did!</strong></p>
 <p>Coming back from the weekend of training, I was relieved to find out that Mario was actually able to beat the level on its own within the three lives granted by the game, even if not with the best consistence.</p>
 <p><img src="file:////home/tkol/dev/uni/ml/mario/images/flag.png" alt="flag"></p>
 <p>To be honest, testing on a few hundreds of episodes, Mario was only able to finish the level on about 10% of those, but that is still a sign that the learning process works, considering that the chance of even getting through half of the level with random movement can be confidently apporximated to 0.</p>
 <p>The folder <code>saved_videos/</code> contains a couple of videos of the agent at the beginning and at the end of the training process.</p>
 <br>
 <h2 id="what-did-it-learn-well">What did it learn well</h2>
-<p>One thing that the agent learned pretty well was that getting hit by enemies (<em>goombas</em> and <em>koopas</em>) caused death, but jumping on them had no negative consequence. This is probably due to the severe penalty (-15 reward) that is applied immediatly after Mario dies.
-<img src="file:////home/tkol/dev/uni/ml/mario/images/stomp.png" alt="stomp-goomba">
-In particular, running a few tests we notice how, even if Mario is stuck behind a pipe, it recognises that it is time to jump right as a goomba approaches, to avoid dying.</p>
+<p>One thing that the agent learned pretty well was that getting hit by enemies (<em>goombas</em> and <em>koopas</em>) caused death, but jumping on them had no negative consequence. This is probably due to the severe penalty (-15 reward) that is applied immediatly after Mario dies.</p>
+<p><img src="file:////home/tkol/dev/uni/ml/mario/images/stomp.png" alt="stomp-goomba"></p>
+<p>In particular, running a few tests we notice how, even if Mario is stuck behind a pipe, it recognises that it is time to jump right as a goomba approaches, to avoid dying.</p>
 <br>
 <h2 id="what-not-so-well">What not so well</h2>
 <p>As we could have expected, the hardest aspect of the game to master was measuring the size of the jumps, since they need a very specific sequence of inputs. As we said, to perform a long jump, the key A needs to be pressed <em>continuously</em> for a large number of frames, and releasing it to soon, even for a single frame, makes the resulting jump very small. This makes it very easy for Mario to get stuck behind a pipe, or to miscalculate the size of the jump and fall into a hole.</p>
 <p><img src="file:////home/tkol/dev/uni/ml/mario/images/pipe_stuck.png" alt="pipe-stuck"></p>
-<p>I assume that is also due to the reward function, which does not penalise being stuck behind an obstacle as heavily as dying, making the ability to jump over an obstacle a skill with very low priority in the eyes of the agent.</p>
+<p>I assume that this is also due to the reward function, which does not penalise being stuck behind an obstacle as heavily as dying, making the ability to jump over an obstacle a skill with very low priority in the eyes of the agent.</p>
 <p>Lastly, as it was absolutely expected, the agent did not understand at all the importance of acquiring <em>power-ups</em>: some of the blocks with a question mark on them release useful items when Mario jumps into them. However, it is so extremely unlikely to hit the block, release the item, catch the moving item and observe its benefits just by random movement, that it probably never even happened through the whole training.</p>
 <br>
 <h2 id="room-for-improvement">Room for improvement</h2>

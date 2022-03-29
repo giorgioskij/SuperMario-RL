@@ -431,7 +431,7 @@ These plots show some interesting things. First of all, that the training proces
 
 ## Did Mario manage to get to the flag?
 
-**Yes, it did!**
+**Yes, he did!**
 
 Coming back from the weekend of training, I was relieved to find out that Mario was actually able to beat the level on its own within the three lives granted by the game, even if not with the best consistence.
 
@@ -446,7 +446,9 @@ The folder `saved_videos/` contains a couple of videos of the agent at the begin
 ## What did it learn well
 
 One thing that the agent learned pretty well was that getting hit by enemies (*goombas* and *koopas*) caused death, but jumping on them had no negative consequence. This is probably due to the severe penalty (-15 reward) that is applied immediatly after Mario dies.
+
 ![stomp-goomba](../images/stomp.png)
+
 In particular, running a few tests we notice how, even if Mario is stuck behind a pipe, it recognises that it is time to jump right as a goomba approaches, to avoid dying.
 
 <br>
@@ -457,7 +459,7 @@ As we could have expected, the hardest aspect of the game to master was measurin
 
 ![pipe-stuck](../images/pipe_stuck.png)
 
-I assume that is also due to the reward function, which does not penalise being stuck behind an obstacle as heavily as dying, making the ability to jump over an obstacle a skill with very low priority in the eyes of the agent.
+I assume that this is also due to the reward function, which does not penalise being stuck behind an obstacle as heavily as dying, making the ability to jump over an obstacle a skill with very low priority in the eyes of the agent.
 
 Lastly, as it was absolutely expected, the agent did not understand at all the importance of acquiring *power-ups*: some of the blocks with a question mark on them release useful items when Mario jumps into them. However, it is so extremely unlikely to hit the block, release the item, catch the moving item and observe its benefits just by random movement, that it probably never even happened through the whole training.
 
